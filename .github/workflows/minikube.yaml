@@ -1,0 +1,46 @@
+name: Deploy to minikube using GitHub Actions
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  job1:
+    name: Build and deploy to minikube
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Start Minikube
+        id: minikube
+        uses: medyagh/setup-minikube@latest
+
+      - name: Try the cluster!
+        run: kubectl get pods -A
+
+      - name: Build Image
+        run: |
+          export SHELL=/bin/bash
+          eval $(minikube -p minikube docker-env)
+          docker compose up
+          echo -n "Verifying images: "
+          docker images
+
+      - name: Deploy to Minikube
+        run: |
+          echo "SERVICE_URL=$(minikube service myimagespring --url)"  # Use the service name from your deployment
+          kubectl port-forward service/docassignment 80:9090 &> /dev/null &
+          sleep 5
+          kubectl port-forward service/myimagespring 80:9090 &> /dev/null &
+
+      - name: Test the Deployment
+        run: |
+          curl -i http://localhost:9090/
+
+      - name: Cleanup
+        run: |
+          eval $(minikube docker-env -u)
+          minikube delete
