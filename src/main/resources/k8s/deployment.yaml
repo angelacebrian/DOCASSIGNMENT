@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myimagespring
+  labels:
+    app: myimagespring
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: myimagespring
+  template:
+    metadata:
+      name: myimagespring
+      labels:
+        app: myimagespring
+    spec:
+      containers:
+        - name: my-spring-boot-container
+          image: myimagespring:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 9090
